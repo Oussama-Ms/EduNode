@@ -1,0 +1,114 @@
+version: '3.8' # Use a standard, widely supported compose file version
+
+services:
+  # ---------------------------------------------------------
+  # Database Service: MongoDB
+  # ---------------------------------------------------------
+  mongodb:
+    image: mongo:latest # Use the official, latest MongoDB image
+    container_name: edunode-mongodb # Explicit name for easier identification and internal DNS
+    ports:
+      # Map the standard MongoDB port to the host machine
+      # This allows tools like MongoDB Compass on your local machine to connect to the DB
+      - "27017:27017"
+    volumes:
+      # Use a named volume to persist database data. 
+      # If the container is destroyed, the data remains intact on your host machine.
+      - mongodb_data:/data/db
+    networks:
+      # Connect this service to our custom internal network
+      - edunode_net
+    restart: unless-stopped # Automatically restart if it crashes, unless manually stopped
+
+  # ---------------------------------------------------------
+  # Core API Service: Node.js (Express Gateway)
+  # ---------------------------------------------------------
+  api-gateway:
+    build:
+      context: ./api-gateway # Look for the Dockerfile in the api-gateway directory
+      dockerfile: Dockerfile
+    container_name: edunode-api-gateway
+    ports:
+      # Map port 5000 inside the container to 5000 on the host
+      # The React frontend will make requests to http://localhost:5000
+      - "5000:5000"
+    volumes:
+      # Mount the local source code into the container for live-reloading during development
+      # This means you don't have to rebuild the container when you change a file
+      - ./api-gateway:/usr/src/app
+      # Exclude the node_modules folder from the mount. 
+      # We want the container to use its own node_modules built internally, not the host's.
+      - /usr/src/app/node_modules
+    environment:
+      # Environment variables injected into the Node.js app
+      - PORT=5000
+      # Connection string to MongoDB. Notice we use the container name 'mongodb' as the host.
+      - MONGODB_URI=mongodb://mongodb:27017/edunode
+      # URL to the Python predictive engine. We use its container name 'predictive-engine'.
+      - PREDICTIVE_ENGINE_URL=http://predictive-engine:8000
+    depends_on:
+      # Ensure MongoDB starts before the API tries to connect to it
+      - mongodb
+    networks:
+      - edunode_net
+    restart: unless-stopped
+    # Use standard shell for development execution to enable tools like nodemon
+    command: npm run dev
+
+  # ---------------------------------------------------------
+  # Predictive Service: Python (FastAPI Engine)
+  # ---------------------------------------------------------
+  predictive-engine:
+    build:
+      context: ./predictive-engine
+      dockerfile: Dockerfile
+    container_name: edunode-predictive-engine
+    ports:
+      # Map port 8000 for local testing (e.g., viewing Swagger docs at localhost:8000/docs)
+      - "8000:8000"
+    volumes:
+      # Mount the source code for hot-reloading (FastAPI/Uvicorn supports this via --reload)
+      - ./predictive-engine:/app
+    environment:
+      - PYTHONUNBUFFERED=1 # Prevents Python from buffering stdout/stderr
+    networks:
+      - edunode_net
+    restart: unless-stopped
+
+  # ---------------------------------------------------------
+  # Frontend Dashboard: React (Vite)
+  # ---------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: edunode-frontend
+    ports:
+      # Map standard Vite port
+      - "5173:5173"
+    volumes:
+      # Mount source code for HMR (Hot Module Replacement)
+      - ./frontend:/app
+      # Keep container's node_modules independent
+      - /app/node_modules
+    environment:
+      # Enable polling for Vite HMR inside Docker (sometimes needed on Windows)
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - edunode_net
+    restart: unless-stopped
+    # Command to run Vite in dev mode, explicitly exposing to all network interfaces
+    command: npm run dev -- --host
+
+# ---------------------------------------------------------
+# Define named volumes
+# ---------------------------------------------------------
+volumes:
+  mongodb_data: # Corresponds to the volume used in the mongodb service
+
+# ---------------------------------------------------------
+# Define custom networks
+# ---------------------------------------------------------
+networks:
+  edunode_net:
+    driver: bridge # Use the standard bridge driver for local internal communication
