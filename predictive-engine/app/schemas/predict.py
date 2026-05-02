@@ -7,7 +7,7 @@ class Grade(BaseModel):
     Ensures that every grade received has a valid course code and a score.
     """
     courseCode: str = Field(..., description="The unique code of the course")
-    score: float = Field(..., ge=0, le=100, description="The grade achieved, between 0 and 100")
+    score: float = Field(..., ge=0, le=20, description="The grade achieved, between 0 and 20")
 
 class StudentDataInput(BaseModel):
     """

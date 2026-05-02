@@ -30,7 +30,7 @@ const protectAdminRoute = (req, res, next) => {
   try {
     // 3. Verify the token using our secret key. 
     // The secret should be in the environment variables.
-    const secret = process.env.JWT_SECRET || 'fallback_dev_secret_key_change_in_prod';
+    const secret = process.env.JWT_SECRET || 'fallback_secret_key';
     
     // jwt.verify throws an error if the token is expired or altered.
     const decoded = jwt.verify(token, secret);

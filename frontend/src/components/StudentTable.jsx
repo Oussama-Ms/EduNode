@@ -1,6 +1,6 @@
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Edit2, Trash2 } from 'lucide-react';
 
-const StudentTable = ({ students, isLoading }) => {
+const StudentTable = ({ students, isLoading, onEdit, onDelete }) => {
   if (isLoading) {
     return (
       <div className="glass-card p-8 flex justify-center items-center h-64 mt-6 bg-white/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
@@ -17,6 +17,8 @@ const StudentTable = ({ students, isLoading }) => {
     );
   }
 
+  const showActions = !!onEdit || !!onDelete;
+
   return (
     <div className="glass-card overflow-hidden mt-6 animate-slide-up bg-white/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
       <div className="overflow-x-auto">
@@ -26,7 +28,9 @@ const StudentTable = ({ students, isLoading }) => {
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Major</th>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Attendance</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Final Grade</th>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Risk Score</th>
+              {showActions && <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Actions</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -51,9 +55,30 @@ const StudentTable = ({ students, isLoading }) => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700 dark:text-slate-300">
                   {student.attendanceRate}%
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  {student.grades && student.grades.length > 0 
+                    ? `${(student.grades.reduce((acc, g) => acc + g.score, 0) / student.grades.length).toFixed(1)} / 20` 
+                    : 'N/A'}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <RiskBadge score={student.riskScore} />
                 </td>
+                {showActions && (
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex justify-end gap-2">
+                      {onEdit && (
+                        <button onClick={() => onEdit(student)} className="text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 bg-brand-50 dark:bg-brand-900/20 p-2 rounded-lg transition-colors">
+                          <Edit2 size={16} />
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button onClick={() => onDelete(student._id)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/20 p-2 rounded-lg transition-colors">
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

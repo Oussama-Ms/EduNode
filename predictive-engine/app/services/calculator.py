@@ -29,7 +29,9 @@ def calculate_risk(student_data: StudentDataInput) -> float:
         
         # Inverse relationship: low average grade = high risk.
         # If average grade is 100%, risk from grades is 0. If 0%, risk is 60.
-        grade_risk = (100 - average_grade) * 0.6
+        # Convert to 100 scale
+        average_grade_Normalized= average_grade * 5
+        grade_risk = (100 - average_grade_Normalized) * 0.6
         
     risk_score += grade_risk
     

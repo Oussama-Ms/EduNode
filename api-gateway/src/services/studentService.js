@@ -50,8 +50,16 @@ export const updateStudent = async (id, updateData) => {
 };
 
 export const softDeleteStudent = async (id) => {
-  // Soft delete: We just set isDeleted to true instead of removing the document.
-  return await Student.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
+  // We use findById and save() instead of findByIdAndUpdate 
+  // because findByIdAndUpdate triggers the findOne hook again AFTER updating
+  // to fetch the updated document, which would then be filtered out by the isDeleted: { $ne: true } hook,
+  // returning null and making the controller think it failed!
+  const student = await Student.findById(id);
+  if (!student) return null;
+  
+  student.isDeleted = true;
+  await student.save();
+  return student;
 };
 
 export const calculateClassAverage = async (major) => {

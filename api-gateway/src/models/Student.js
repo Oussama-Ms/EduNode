@@ -38,7 +38,7 @@ const studentSchema = new mongoose.Schema(
     grades: [
       {
         courseCode: { type: String, required: true },
-        score: { type: Number, min: 0, max: 100, required: true },
+        score: { type: Number, min: 0, max: 20, required: true },
       }
     ],
     // Attendance percentage (0-100)

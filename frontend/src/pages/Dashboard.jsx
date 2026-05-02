@@ -14,6 +14,8 @@ const Dashboard = () => {
   const [avgAttendance, setAvgAttendance] = useState(0);
   const [highRiskStudents, setHighRiskStudents] = useState(0);
 
+  const [editingStudent, setEditingStudent] = useState(null);
+
   const fetchStudents = async () => {
     try {
       setLoading(true);
@@ -42,10 +44,25 @@ const Dashboard = () => {
     fetchStudents();
   }, []);
 
-  const handleStudentAdded = (newStudent) => {
-    setStudents(prev => [newStudent, ...prev]);
-    // Force a refetch to update stats accurately
+  const handleStudentSaved = () => {
     fetchStudents();
+  };
+
+  const handleEdit = (student) => {
+    setEditingStudent(student);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (studentId) => {
+    if (window.confirm("Are you sure you want to delete this student?")) {
+      try {
+        await apiClient.delete(`/students/${studentId}`);
+        fetchStudents();
+      } catch (error) {
+        console.error("Failed to delete student", error);
+        alert("Failed to delete student. See console for details.");
+      }
+    }
   };
 
   return (
@@ -57,7 +74,10 @@ const Dashboard = () => {
           <p className="text-slate-500 dark:text-slate-400 mt-1">Monitor your institution's health and student performance.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingStudent(null);
+            setIsModalOpen(true);
+          }}
           className="btn-primary flex items-center gap-2 w-full md:w-auto justify-center"
         >
           <Plus size={20} />
@@ -96,13 +116,21 @@ const Dashboard = () => {
       </div>
 
       
-      <StudentTable students={students} isLoading={loading} />
+      <StudentTable 
+        students={students} 
+        isLoading={loading} 
+        onEdit={handleEdit} 
+        onDelete={handleDelete} 
+      />
 
-      {/* Modal */}
       <AddStudentModal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onStudentAdded={handleStudentAdded}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingStudent(null);
+        }} 
+        onStudentAdded={handleStudentSaved}
+        initialData={editingStudent}
       />
     </div>
   );

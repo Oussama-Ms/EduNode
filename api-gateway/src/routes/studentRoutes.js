@@ -20,7 +20,7 @@ const createStudentSchema = z.object({
   major: z.string().min(2, 'Major is required'),
   grades: z.array(z.object({
     courseCode: z.string(),
-    score: z.number().min(0).max(100)
+    score: z.number().min(0).max(20)
   })).optional(),
   attendanceRate: z.number().min(0).max(100).optional()
 });
@@ -44,22 +44,22 @@ router.get('/stats/average', studentController.getStudentStats);
 router.route('/')
   // Read all (supports ?major= filter)
   .get(studentController.getStudents)
-  
+
   // Create Student
   // Applies POST rate limiter, then Zod validation, then calls controller
   .post(
-    postLimiter, 
-    validateRequest(createStudentSchema), 
+    postLimiter,
+    validateRequest(createStudentSchema),
     studentController.createStudent
   );
 
 router.route('/:id')
   // Read specific student
   .get(studentController.getStudentById)
-  
+
   // Update student
   .put(studentController.updateStudent)
-  
+
   // Delete student (Soft Delete)
   // Protected route: requires JWT in Authorization header
   .delete(protectAdminRoute, studentController.deleteStudent);
