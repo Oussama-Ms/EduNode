@@ -70,12 +70,11 @@ export const deleteStudent = async (req, res) => {
 
 export const getStudentStats = async (req, res) => {
   try {
-    const { major } = req.query;
-    if (!major) {
-      return res.status(400).json({ success: false, message: 'Please provide a major in the query params' });
+    const average = await studentService.calculateClassAverage();
+    if (average === null) {
+      return res.status(200).json({ success: true, message: 'No data to calculate average.' });
     }
-    const stats = await studentService.calculateClassAverage(major);
-    res.status(200).json({ success: true, data: stats || { message: 'No data for this major' } });
+    res.status(200).json({ success: true, message: `The average grade for all students is ${average.toFixed(2)}/20` });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

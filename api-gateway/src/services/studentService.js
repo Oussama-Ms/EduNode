@@ -62,26 +62,35 @@ export const softDeleteStudent = async (id) => {
   return student;
 };
 
-export const calculateClassAverage = async (major) => {
+export const calculateClassAverage = async () => {
   // WHY: We use MongoDB Aggregation Pipeline for heavy lifting.
-  // It's much faster to let the database calculate averages than to fetch 
-  // thousands of records into Node.js memory and calculate it in Javascript.
+  // We want to calculate the final grade (average) for each student first,
+  // then calculate the average of all those student averages.
   const stats = await Student.aggregate([
-    // Step 1: Filter by major (and ensure not deleted)
-    { $match: { major: major, isDeleted: { $ne: true } } },
+    // Step 1: Filter out deleted students
+    { $match: { isDeleted: { $ne: true } } },
+    
     // Step 2: Unwind the grades array (creates a document for each grade)
-    { $unwind: "$grades" },
-    // Step 3: Group back together and calculate the average score
+    { $unwind: { path: "$grades", preserveNullAndEmptyArrays: false } },
+    
+    // Step 3: Group by student to calculate each student's average score
     { 
       $group: { 
-        _id: "$major", 
-        averageScore: { $avg: "$grades.score" },
-        totalStudentsEvaluated: { $sum: 1 } // Note: this sums grades, not students, if unwound
+        _id: "$_id", 
+        studentAvg: { $avg: "$grades.score" }
       } 
+    },
+    
+    // Step 4: Group all students together to calculate the overall class average
+    {
+      $group: {
+        _id: null,
+        overallAverage: { $avg: "$studentAvg" }
+      }
     }
   ]);
 
-  return stats.length > 0 ? stats[0] : null;
+  return stats.length > 0 ? stats[0].overallAverage : null;
 };
 
 export const generateCsvExport = async () => {

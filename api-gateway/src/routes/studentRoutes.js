@@ -33,7 +33,7 @@ const createStudentSchema = z.object({
 // GET /api/students/export - Triggers CSV Download
 router.get('/export', studentController.exportStudents);
 
-// GET /api/students/stats/average?major=CS - Calculates average
+// GET /api/students/stats/average - Calculates overall average
 router.get('/stats/average', studentController.getStudentStats);
 
 

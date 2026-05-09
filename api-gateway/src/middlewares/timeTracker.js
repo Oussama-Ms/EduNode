@@ -1,3 +1,5 @@
+import logger from '../config/logger.js';
+
 /**
  * Time Tracker Middleware
  * 
@@ -20,10 +22,8 @@ const timeTracker = (req, res, next) => {
     // We convert it to milliseconds for readability
     const timeInMs = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(3);
 
-    // 4. Log the result. 
-    // In a true production environment, we'd use a logger like Winston or Pino 
-    // instead of console.log to ship this to Datadog or ELK.
-    console.log(`[TIME TRACKER] ${req.method} ${req.originalUrl} completed in ${timeInMs} ms`);
+    // 4. Log the result using Winston
+    logger.info(`[TIME TRACKER] ${req.method} ${req.originalUrl} completed in ${timeInMs} ms`);
   });
 
   // 5. Pass control to the next middleware or route handler.

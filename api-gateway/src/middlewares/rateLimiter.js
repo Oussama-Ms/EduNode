@@ -19,3 +19,15 @@ export const postLimiter = rateLimit({
     message: 'Too many creation requests from this IP, please try again after a minute.'
   }
 });
+
+// We create a specific limiter for Admin Authentication: max 3 requests per 3 minutes
+export const authLimiter = rateLimit({
+  windowMs: 3 * 60 * 1000, // 3 minutes window
+  max: 3, // Limit each IP to 3 requests per `window`
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many login attempts from this IP, please try again after 3 minutes.'
+  }
+});

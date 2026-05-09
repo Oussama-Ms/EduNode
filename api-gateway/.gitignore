@@ -10,7 +10,7 @@ pnpm-debug.log*
 # Environment
 .env
 .env.test
-
+logs/
 # Build and Testing
 coverage/
 dist/

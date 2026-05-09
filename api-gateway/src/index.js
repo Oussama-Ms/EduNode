@@ -62,8 +62,10 @@ app.use('*', (req, res) => {
 // SERVER START
 // ==========================================
 
+import logger from './config/logger.js';
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`API Gateway Server running on port ${PORT}`);
+  logger.info(`API Gateway Server running on port ${PORT}`);
 });

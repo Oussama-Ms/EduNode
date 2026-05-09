@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import logger from './logger.js';
 
 /**
  * Establish a connection to the MongoDB database.
@@ -18,9 +19,9 @@ const connectDB = async () => {
     // like useNewUrlParser or useUnifiedTopology.
     const conn = await mongoose.connect(uri);
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    logger.info(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error(`Error connecting to MongoDB: ${error.message}`);
+    logger.error(`Error connecting to MongoDB: ${error.message}`);
     // Exit process with failure code if the database cannot be reached.
     // A microservice is useless without its primary data store, so we let the 
     // orchestrator (Docker) handle restarting it.
